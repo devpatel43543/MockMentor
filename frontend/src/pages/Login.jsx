@@ -1,16 +1,46 @@
 import React, { useState } from "react";
-
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     async function onSubmit(event) {
         event.preventDefault();
         setIsLoading(true);
+        setError(null);
 
-        // Simulate API call
-        setTimeout(() => {
+        const formData = new FormData(event.target);
+        const data = {
+            email: formData.get('email'),
+            password: formData.get('password')
+        };
+
+        try {
+            const response = await axios.post('http://localhost:3000/api/users/login', {
+                email: data.email,
+                password: data.password
+            });
+
+            // Assuming the backend returns { token: "jwt-token", user: {...} }
+            const { token } = response.data;
+            console.log('Token:', token);
+            // Store token in localStorage
+            localStorage.setItem('token', token);
+            
+            console.log('Login successful:', response.data);
+            // Redirect to dashboard or home page
+            // window.location.href = '/dashboard';
+            navigate('/home');
+
+        } catch (err) {
+            const errorMessage = err.response?.data?.error || err.message || 'Login failed';
+            setError(errorMessage);
+            console.error('Login error:', err);
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     }
 
     return (

@@ -7,7 +7,7 @@ const Landing = React.lazy(() => import("./pages/LandingPage"));
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
 const LoadAnimation = React.lazy(() => import("./component/LoadAnimation"));
-
+const Home = React.lazy(() => import("./pages/Home"));
 
 function App() {
   return (
@@ -23,6 +23,10 @@ function App() {
       <Route
         path={frontEndRoutes.REGISTER}
         element={<ExcludeNavbar Component={Register} />}
+      />
+      <Route
+        path={frontEndRoutes.HOME}
+        element={<ExcludeNavbar Component={Home} />}
       />
     </Routes>
   );

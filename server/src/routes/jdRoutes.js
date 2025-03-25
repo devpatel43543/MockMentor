@@ -1,21 +1,26 @@
-const express = require('express');
-const { uploadJD } = require('../services/jdService');
+import express from "express";
+import upload from "../config/multer.js";
+import jdService from "../services/jdService.js";
+
 const router = express.Router();
 
-// POST /api/jd/upload - Upload a job description
-router.post('/upload', async (req, res) => {
+// Upload JD (Text File) Route
+router.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    const { userId, jdText } = req.body;
-    if (!userId || !jdText) {
-      return res.status(400).json({ error: 'User ID and JD text are required' });
+    console.log("File:", req.file); // Uploaded file
+    console.log("UserId:", req.body.userId); // Form data
+
+    const { userId } = req.body;
+    if (!req.file || !userId) {
+      return res.status(400).json({ error: "File and userId are required." });
     }
 
-    const jd = await uploadJD(userId, jdText);
-    res.status(201).json({ message: 'JD uploaded successfully', jd });
-  } catch (err) {
-    console.error('JD Upload Error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    const result = await jdService(req.file, userId);
+    res.status(201).json({ message: "JD uploaded successfully", ...result });
+  } catch (error) {
+    console.error("Error uploading JD:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,11 +1,17 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const userRoutes = require('./routes/userRoutes');
-const jdRoutes = require('./routes/jdRoutes');
+import express from 'express';
+import dotenv from 'dotenv';
+import userRoutes from './routes/userRoutes.js';
+import jdRoutes from './routes/jdRoutes.js';
+import cors from 'cors';
 
 dotenv.config();
-const app = express();
 
+const app = express();
+app.use(cors({
+  origin: '*', // Allows all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Allowed headers
+}));
 // Middleware
 app.use(express.json());
 
@@ -19,4 +25,4 @@ app.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
 });
 
-module.exports = app; // Export for testing purposes
+export default app;

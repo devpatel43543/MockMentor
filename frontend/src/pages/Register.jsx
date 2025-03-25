@@ -1,15 +1,55 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 export default function Register() {
+    const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false);
-
+    const [error, setError] = useState(null);
     async function onSubmit(event) {
         event.preventDefault();
         setIsLoading(true);
+        setError(null); // Reset error state
 
-        // Simulate API call
-        setTimeout(() => {
+        // Get form data
+        const formData = new FormData(event.target);
+        const data = {
+            name: formData.get('fullName'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirmPassword: formData.get('confirmPassword')
+        };
+
+        // Basic client-side validation
+        if (data.password !== data.confirmPassword) {
+            setError("Passwords don't match");
             setIsLoading(false);
-        }, 1000);
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://localhost:3000/api/users/register', {
+                name: data.name,
+                email: data.email,
+                password: data.password
+            });
+            const result = response.data;
+
+            if (!response.status === 400) {
+                throw new Error(result.error || 'Registration failed');
+            }
+
+            // Handle successful registration
+            console.log('Registration successful:', result);
+            // You might want to redirect to login page or auto-login here
+            // For example: window.location.href = '/login';
+
+            navigate('/login');
+        } catch (err) {
+            setError(err.message);
+            console.error('Registration error:', err);
+        } finally {
+            setIsLoading(false);
+        }
     }
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -188,68 +228,8 @@ export default function Register() {
                                 </button>
                             </form>
 
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-slate-200"></div>
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-white px-2 text-slate-500">Or continue with</span>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    disabled={isLoading}
-                                    className={`flex items-center justify-center py-2 px-4 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700
-                      ${isLoading
-                                            ? "bg-slate-50 cursor-not-allowed"
-                                            : "bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                        }`}
-                                >
-                                    <svg
-                                        className="mr-2 h-4 w-4"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                                    </svg>
-                                    GitHub
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={isLoading}
-                                    className={`flex items-center justify-center py-2 px-4 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700
-                      ${isLoading
-                                            ? "bg-slate-50 cursor-not-allowed"
-                                            : "bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                        }`}
-                                >
-                                    <svg
-                                        className="mr-2 h-4 w-4"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                                    </svg>
-                                    Google
-                                </button>
-                            </div>
+                         
 
                             <div className="text-center text-sm text-slate-500 mt-6">
                                 Already have an account?{" "}

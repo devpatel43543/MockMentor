@@ -1,16 +1,14 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const AWS = require('../config/aws');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import {s3, dynamoDB,AWS,dynamoDBClient} from '../config/awsConfig.js';
 
-const docClient = new AWS.DynamoDB.DocumentClient();
-const dynamodb = new AWS.DynamoDB();
 const TABLE_NAME = 'Users';
 
 // Function to check if the DynamoDB table exists, and create it if not
 const ensureUsersTableExists = async () => {
   try {
-    const tables = await dynamodb.listTables().promise();
+    const tables = await dynamoDBClient.listTables().promise();
     if (!tables.TableNames.includes(TABLE_NAME)) {
       console.log(`Creating table: ${TABLE_NAME}`);
 
@@ -24,7 +22,7 @@ const ensureUsersTableExists = async () => {
         },
       };
 
-      await dynamodb.createTable(params).promise();
+      await dynamoDBClient.createTable(params).promise();
       console.log(`Table '${TABLE_NAME}' created successfully.`);
     } else {
       console.log(`Table '${TABLE_NAME}' already exists.`);
@@ -46,7 +44,7 @@ const registerUser = async (name, email, password) => {
     Item: { userId, name, email, passwordHash },
   };
 
-  await docClient.put(params).promise();
+  await dynamoDB.put(params).promise();
   return { userId, name, email };
 };
 
@@ -58,16 +56,16 @@ const loginUser = async (email, password) => {
     Key: { email }, // Query by primary key
   };
 
-  const { Item } = await docClient.get(params).promise();
+  const { Item } = await dynamoDB.get(params).promise();
   if (!Item || !(await bcrypt.compare(password, Item.passwordHash))) {
     throw new Error('Invalid credentials');
   }
 
   const token = jwt.sign({ userId: Item.userId }, process.env.JWT_SECRET, {
-    expiresIn: '72h',
+    expiresIn: '0.05h',
   });
 
   return { token, userId: Item.userId };
 };
 
-module.exports = { registerUser, loginUser };
+export default { registerUser, loginUser };
