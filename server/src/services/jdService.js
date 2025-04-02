@@ -3,11 +3,9 @@ import { s3, dynamoDB,dynamoDBClient } from "../config/awsConfig.js";
 const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 const TABLE_NAME = "JDRecords";
 
-// Function to check if the DynamoDB table exists, and create it if not
-// Ensure the DynamoDB table exists (or create if missing)
 const ensureTableExists = async () => {
   try {
-    const tables = await dynamoDBClient.listTables().promise(); // Use base client
+    const tables = await dynamoDBClient.listTables().promise(); 
     if (!tables.TableNames.includes(TABLE_NAME)) {
       console.log(`Creating table: ${TABLE_NAME}`);
 

@@ -5,6 +5,7 @@ const FRONTEND_ROUTES = {
     LOGIN: '/login',
     REGISTER: '/register',
     HOME : '/home',
+    INTERVIEW: '/interview',
 };
 
 export default FRONTEND_ROUTES;

@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 export default function Register() {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const backendUrl = "http://backend-ALB-881363039.us-east-1.elb.amazonaws.com"
+    console.log(backendUrl)
+    console.log(backendUrl)
+        useEffect(() => {
+            // Check if the user is already logged in
+            const token = localStorage.getItem("token");
+            if (token) {
+                // Redirect to dashboard or home page
+                navigate("/home");
+            }
+        }
+        , []);
     async function onSubmit(event) {
         event.preventDefault();
         setIsLoading(true);
@@ -27,7 +39,7 @@ export default function Register() {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/api/users/register', {
+            const response = await axios.post(`${backendUrl}/api/users/register`, {
                 name: data.name,
                 email: data.email,
                 password: data.password

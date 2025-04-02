@@ -4,7 +4,6 @@ import jdService from "../services/jdService.js";
 
 const router = express.Router();
 
-// Upload JD (Text File) Route
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     console.log("File:", req.file); // Uploaded file

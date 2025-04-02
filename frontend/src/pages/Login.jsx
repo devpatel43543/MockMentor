@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-
+    const backendUrl = "http://backend-ALB-881363039.us-east-1.elb.amazonaws.com"
+    console.log(backendUrl)
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            navigate("/home");
+        }
+    }
+    , []);
     async function onSubmit(event) {
         event.preventDefault();
         setIsLoading(true);
@@ -18,7 +26,7 @@ export default function LoginPage() {
         };
 
         try {
-            const response = await axios.post('http://localhost:3000/api/users/login', {
+            const response = await axios.post(`${backendUrl}/api/users/login`, {
                 email: data.email,
                 password: data.password
             });
@@ -32,6 +40,7 @@ export default function LoginPage() {
             console.log('Login successful:', response.data);
             // Redirect to dashboard or home page
             // window.location.href = '/dashboard';
+        
             navigate('/home');
 
         } catch (err) {
