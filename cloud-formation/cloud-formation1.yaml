@@ -320,7 +320,6 @@ Resources:
             sudo service docker start
             sudo usermod -a -G docker ec2-user
             sudo docker pull devkumar640/backend_interviewprep:latest
-            sudo docker run -d  -e PORT='3000'  -e S3_BUCKET_NAME='jd-data-bucket1' -e S3_BUCKET_NAME_RECORDING='ans-recording' -e AWS_ACCESS_KEY_ID='AKIATBRK57WKIKTJZ6NS'   -e AWS_SECRET_ACCESS_KEY='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'   -e AWS_REGION='us-east-1'   -e OPENAI_API_KEY='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'   -e DB_HOST='a2-db.ccbph2c53wdb.us-east-1.rds.amazonaws.com'   -e JWT_SECRET='3ed4fb035940d02c863eae55142d727a7dcc13500c56c2692d77646f1c91849079b88177838134646e80e3020d9b9cf5190d5654877bcf80f42303f30c1a0b4c8641baedccfc97dea47db8991a61faf7742370952a7a047361882dccee1b41ef50db2032501fb27fd63e50d8f67942c224dc2e0f5d6f4813b5f189f1dd25e1d1c06791b93616b3c52746a6b14f1f74eb333fa671683083f6370b4557694822aa7064bd038b97fa6737d0374562e95716469eea9abd6ba964d13777f705143603fcdcf08a157b119ea8d5f7b3b75d3cdf2c9742b51639fbaab624911c4faa64fb4d6329062c56f2e8c4e3571e258cade36705df0d41b80dd85697a519f915cbb0'   -p 3000:3000   --name my_backend_container devkumar640/backend_interviewprep:latest
 
   BackendALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
