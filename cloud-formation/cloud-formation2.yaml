@@ -217,6 +217,7 @@ Resources:
 
   FrontendLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
+    DependsOn: BackendALB
     Properties:
       LaunchTemplateName: FrontendLaunchTemplate
       VersionDescription: "Version 1"
@@ -239,7 +240,10 @@ Resources:
             sudo service docker start
             sudo usermod -a -G docker ec2-user
             sudo docker pull devkumar640/frontend_interviewprep:latest
-            sudo docker run --restart always -d -p 80:80 devkumar640/frontend_interviewprep:latest
+            echo "Running the Docker container with backend URL..."
+            docker build --build-arg BACKEND_BASE_URL=http://${BackendLoadBalancer.DNSName} -t my-frontend .
+            sudo docker run --restart always -d -p 80:80 -e BACKEND_URL="http://${BackendLoadBalancer.DNSName}" devkumar640/frontend_interviewprep:latest
+            echo "Setup completed successfully."
 
   FrontendALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
