@@ -6,7 +6,6 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
-    
     console.log(backendUrl)
     useEffect(() => {
         const token = localStorage.getItem("token");

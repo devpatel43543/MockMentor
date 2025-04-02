@@ -18,7 +18,7 @@ const RecordAnswer = () => {
     const intervalRef = useRef(null);
 
     const userId = getUserIdFromToken();
-    const backendUrl = "http://backend-ALB-881363039.us-east-1.elb.amazonaws.com"
+    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
     console.log(backendUrl)
 
     const formatTime = (time) => {

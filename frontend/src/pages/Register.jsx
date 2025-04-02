@@ -5,9 +5,9 @@ export default function Register() {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const backendUrl = "http://backend-ALB-881363039.us-east-1.elb.amazonaws.com"
+    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
     console.log(backendUrl)
-    console.log(backendUrl)
+    
         useEffect(() => {
             // Check if the user is already logged in
             const token = localStorage.getItem("token");

@@ -16,8 +16,9 @@ export default function DashboardPage() {
   const [s3Url, setS3Url] = useState("");
   const [userId, setUserId] = useState("");
   const { questions, setQuestions } = useContext(QuestionContext);
-  const backendUrl = "http://backend-ALB-881363039.us-east-1.elb.amazonaws.com"
-  console.log("backend url", backendUrl);
+
+     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
+    console.log(backendUrl)
   // Handle file selection with validation
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
