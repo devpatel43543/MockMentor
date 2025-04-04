@@ -113,7 +113,8 @@ const RecordAnswer = () => {
         try {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
-                "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
+                // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
+                "https://kn0sdxv1l4.execute-api.us-east-1.amazonaws.com/prod/feedback",
                 {
                     userId,
                     questionId,

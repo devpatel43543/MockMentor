@@ -101,7 +101,8 @@ export default function DashboardPage() {
     try {
       // Call Lambda to trigger question generation (optional if required)
       await axios.post(
-        "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/generate-questions",
+        // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/generate-questions",
+        "https://kn0sdxv1l4.execute-api.us-east-1.amazonaws.com/prod/upload",
         { jdId: jdID, s3Url: s3Url }
       );
 
