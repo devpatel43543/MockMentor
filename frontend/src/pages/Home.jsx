@@ -101,7 +101,7 @@ export default function DashboardPage() {
     try {
       // Call Lambda to trigger question generation (optional if required)
       const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
-      const fullUrl = `${apiGatewayUrl}/feedback`
+      const fullUrl = `${apiGatewayUrl}/upload`
       console.log(fullUrl)
       await axios.post(
         // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/generate-questions",
