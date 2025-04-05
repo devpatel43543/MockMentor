@@ -17,8 +17,8 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState("");
   const { questions, setQuestions } = useContext(QuestionContext);
 
-     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
-    console.log(backendUrl)
+  const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
+  console.log(backendUrl)
   // Handle file selection with validation
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -100,9 +100,10 @@ export default function DashboardPage() {
 
     try {
       // Call Lambda to trigger question generation (optional if required)
+      const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
       await axios.post(
         // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/generate-questions",
-        "https://kn0sdxv1l4.execute-api.us-east-1.amazonaws.com/prod/upload",
+        `${apiGatewayUrl}/upload`,
         { jdId: jdID, s3Url: s3Url }
       );
 

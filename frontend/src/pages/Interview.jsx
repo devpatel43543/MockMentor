@@ -110,11 +110,12 @@ const RecordAnswer = () => {
     const fetchFeedback = async (questionId) => {
         setIsFeedbackLoading(true);
         setFeedback(null); // Clear previous feedback
+        const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
         try {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
                 // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
-                "https://kn0sdxv1l4.execute-api.us-east-1.amazonaws.com/prod/feedback",
+                `${apiGatewayUrl}/feedback`,
                 {
                     userId,
                     questionId,
