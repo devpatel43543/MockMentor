@@ -44,7 +44,6 @@ WORKDIR /app
 
 # Accept backend URL as a build argument
 ARG BACKEND_BASE_URL
-RUN echo "VITE_BACKEND_BASE_URL=$BACKEND_BASE_URL" > .env
 # ENV VITE_BACKEND_BASE_URL=$BACKEND_BASE_URL
 
 # Copy package files and install dependencies
@@ -53,6 +52,8 @@ RUN npm install
 
 # Copy the rest of the files
 COPY . .
+
+RUN echo "VITE_BACKEND_BASE_URL=$BACKEND_BASE_URL" > .env
 
 # Build the frontend with the correct backend URL
 RUN npm run build

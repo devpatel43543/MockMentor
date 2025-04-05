@@ -12,9 +12,6 @@ docker-compose.override.yml
 dist
 build
 
-# Ignore environment files
-.env
-.env.*
 
 # Ignore temporary files
 *.tmp
