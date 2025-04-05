@@ -134,7 +134,9 @@ const RecordAnswer = () => {
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
             const feedbackData = JSON.parse(feedbackResponse.data);
-            setFeedback(feedbackData.feedback);
+            console.log("Parsed feedback data:", feedbackData);
+            console.log("Feedback:", feedbackResponse.data.feedbac);
+            setFeedback(feedbackResponse.data.feedback);
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
             alert("Failed to fetch feedback. Please try again.");
