@@ -113,6 +113,8 @@ const RecordAnswer = () => {
         const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
         const fullUrl = `${apiGatewayUrl}/feedback`;
         console.log("Full URL for feedback:", fullUrl);
+        console.log("User ID:", userId);
+        console.log("Question ID:", questionId);
         try {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
@@ -131,7 +133,7 @@ const RecordAnswer = () => {
             );
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-            const feedbackData = JSON.parse(feedbackResponse.data.body);
+            const feedbackData = JSON.parse(feedbackResponse.data);
             setFeedback(feedbackData.feedback);
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
