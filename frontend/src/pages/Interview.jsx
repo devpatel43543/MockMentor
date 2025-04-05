@@ -133,8 +133,7 @@ const RecordAnswer = () => {
             );
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-            const feedbackData = JSON.parse(feedbackResponse.data);
-            console.log("Parsed feedback data:", feedbackData);
+            console.log("Parsed feedback data:", feedbackResponse);
             console.log("Feedback:", feedbackResponse.data.feedback);
             setFeedback(feedbackResponse.data.feedback);
         } catch (err) {
