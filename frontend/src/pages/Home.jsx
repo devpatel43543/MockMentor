@@ -7,6 +7,7 @@ import QuestionContext from "../context/QuestionContext";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
+  const {jd,setJd} = useContext(QuestionContext)
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -61,8 +62,11 @@ export default function DashboardPage() {
 
       showSuccessToast("JD uploaded successfully");
       setJdID(response.data.jdId);
+      console.log("JD ID from 65:", response.data.jdId);
       setS3Url(response.data.s3Url);
       setIsUploaded(true);
+      setJd(response.data.jdId);
+      console.log("Upload response:", response.data);
     } catch (error) {
       showErrorToast(
         `Failed to upload JD: ${error.response?.data?.message || "Server error"}`
@@ -99,10 +103,12 @@ export default function DashboardPage() {
     setIsUploading(true);
 
     try {
+      console.log("Sending to Lambda:", { jdId: jdID, s3Url });
       // Call Lambda to trigger question generation (optional if required)
       const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
       const fullUrl = `${apiGatewayUrl}/upload`
       console.log(fullUrl)
+      console.log("jdID from 109",jdID)
       await axios.post(
         // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/generate-questions",
         //`${apiGatewayUrl}/upload`,
@@ -112,7 +118,6 @@ export default function DashboardPage() {
 
       // Fetch questions from DynamoDB
       const questionsFromDB = await fetchQuestionsFromDynamoDB(jdID);
-
       if (questionsFromDB.length > 0) {
         setQuestions(questionsFromDB);
         navigate("/interview");

@@ -7,13 +7,13 @@ const QuestionContextProvider = (props) => {
         const savedQuestions = localStorage.getItem('interviewQuestions');
         return savedQuestions ? JSON.parse(savedQuestions) : [];
     });
-
+    const [jd,setJd] = useState();
     useEffect(() => {
         localStorage.setItem('interviewQuestions', JSON.stringify(questions));
     }, [questions]);
 
     return (
-        <QuestionContext.Provider value={{ questions, setQuestions }}>
+        <QuestionContext.Provider value={{ questions, setQuestions,jd,setJd }}>
             {props.children}
         </QuestionContext.Provider>
     );
