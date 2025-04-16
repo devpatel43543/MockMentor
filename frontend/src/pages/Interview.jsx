@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext, useRef} from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import QuestionContext from "../context/QuestionContext";
 import RecordRTC from "recordrtc";
 import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 const RecordAnswer = () => {
-    
-    const { questions, jd } = useContext(QuestionContext); // Assume jdID is in context
+    const { questions, jd } = useContext(QuestionContext);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -15,6 +16,7 @@ const RecordAnswer = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+    const [isSessionComplete, setIsSessionComplete] = useState(false);
     const recorderRef = useRef(null);
     const intervalRef = useRef(null);
     const navigate = useNavigate();
@@ -22,6 +24,21 @@ const RecordAnswer = () => {
     const userId = getUserIdFromToken();
     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
     const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+
+    // Debug context and userId
+    useEffect(() => {
+        console.log("QuestionContext:", { questions, jd });
+        console.log("userId:", userId);
+        if (!jd) {
+            console.error("jdID is missing in QuestionContext");
+            toast.error("Job ID is missing. Please try again.");
+        }
+        if (!userId) {
+            console.error("userId is missing from token");
+            toast.error("User authentication failed. Please log in again.");
+            navigate("/login");
+        }
+    }, [jd, userId, navigate]);
 
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60);
@@ -31,6 +48,9 @@ const RecordAnswer = () => {
 
     const startRecording = async () => {
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("Media devices not supported in this browser.");
+            }
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const recorder = new RecordRTC(stream, {
                 type: "audio",
@@ -39,6 +59,7 @@ const RecordAnswer = () => {
             });
 
             recorderRef.current = recorder;
+            recorderRef.current.stream = stream;
             recorder.startRecording();
             setIsRecording(true);
             setRecordingTime(0);
@@ -49,7 +70,7 @@ const RecordAnswer = () => {
             }, 1000);
         } catch (err) {
             console.error("Error starting recording:", err);
-            alert("Failed to access microphone. Please check permissions.");
+            toast.error("Failed to access microphone. Please check permissions.");
         }
     };
 
@@ -64,7 +85,9 @@ const RecordAnswer = () => {
                 console.log("Recording stopped, blob size:", blob.size);
                 setAudioBlob(blob);
                 setAudioUrl(URL.createObjectURL(blob));
-                recorderRef.current.getTracks().forEach((track) => track.stop());
+                if (recorderRef.current.stream) {
+                    recorderRef.current.stream.getTracks().forEach((track) => track.stop());
+                }
             });
         }
     };
@@ -72,6 +95,7 @@ const RecordAnswer = () => {
     const submitAnswer = async () => {
         if (!audioBlob || currentQuestionIndex >= questions.length) {
             console.error("No audio blob or invalid question index");
+            toast.error("No recording available to submit.");
             return;
         }
 
@@ -101,7 +125,7 @@ const RecordAnswer = () => {
             await fetchFeedback(question.questionId);
         } catch (err) {
             console.error("Error uploading audio:", err);
-            alert("Failed to submit answer. Please try again.");
+            toast.error("Failed to upload recording. Please try again.");
         } finally {
             setIsUploading(false);
             console.log("Uploading finished, isUploading set to false");
@@ -119,10 +143,7 @@ const RecordAnswer = () => {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
                 fullUrl,
-                {
-                    userId,
-                    questionId,
-                },
+                { userId, questionId },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -131,11 +152,15 @@ const RecordAnswer = () => {
             );
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-            console.log("Feedback:", feedbackResponse.data.feedback);
             setFeedback(feedbackResponse.data.feedback);
+
+            if (currentQuestionIndex === questions.length - 1) {
+                setIsSessionComplete(true);
+                toast.info("You’ve answered all questions! Session complete.");
+            }
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
-            alert("Failed to fetch feedback. Please try again.");
+            toast.error("Failed to fetch feedback. Please try again.");
         } finally {
             setIsFeedbackLoading(false);
         }
@@ -155,21 +180,19 @@ const RecordAnswer = () => {
     };
 
     const requestSummaryReport = async () => {
+        console.log("requestSummaryReport called, jdID:", jd, "userId:", userId);
         if (!jd || !userId) {
-            console.error("Missing jdID or userId");
-            toast.error("Cannot send report: Missing session or user information");
+            console.error("Missing jdID or userId", { jd, userId });
+            toast.error("Cannot generate report: Missing job or user information.");
             return;
         }
 
-        const fullUrl = `${apiGatewayUrl}/send-report`;
+        const fullUrl = `${apiGatewayUrl}/interview-report`;
         console.log("Requesting summary report, URL:", fullUrl);
         try {
             const response = await axios.post(
                 fullUrl,
-                {
-                    jdID: jd,
-                    userId:userId,
-                },
+                { jd, userId },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -179,27 +202,29 @@ const RecordAnswer = () => {
 
             console.log("Report response:", response.status, response.data);
             if (response.status === 200) {
-                toast.success("Report sent successfully! Check your email.", {
-                    onClose: () => {
-                        console.log("Toast closed, navigating to homepage");
-                        navigate("/home");
-                    },
-                });
+                toast.success("Report requested successfully!");
+                navigate("/home");
             } else {
                 throw new Error("Failed to send report");
             }
         } catch (err) {
             console.error("Error sending report:", err);
-            toast.error("Failed to send report. Please try again.");
+            toast.error("Failed to request report. Please try again.");
         }
     };
 
     if (!questions?.length) return <div>No questions available</div>;
 
-    if (currentQuestionIndex >= questions.length) {
+    if (isSessionComplete) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
-                <div className="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div className="text-center bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
+                    {feedback && (
+                        <div className="mb-6 p-4 bg-slate-100 rounded-md">
+                            <h3 className="text-lg font-semibold text-slate-800">Feedback for Last Question</h3>
+                            <p className="text-slate-600">{feedback}</p>
+                        </div>
+                    )}
                     <h2 className="text-2xl font-bold text-slate-800 mb-4">Session Completed!</h2>
                     <p className="text-slate-600 mb-6">Thank you for completing the interview session.</p>
                     <div className="flex justify-center gap-4">
@@ -217,13 +242,11 @@ const RecordAnswer = () => {
                         </button>
                     </div>
                 </div>
-                <ToastContainer position="top-right" autoClose={2000} />
             </div>
         );
     }
 
     const question = questions[currentQuestionIndex];
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
             <header className="bg-white border-b border-slate-200 py-4 px-6">
@@ -345,4 +368,3 @@ const RecordAnswer = () => {
 };
 
 export default RecordAnswer;
-
