@@ -240,7 +240,7 @@ function landingPage() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <h2 className="text-2xl font-bold text-white">
-              <span className="text-blue-400">Mock</span>Mentor
+              <span className="text-blue-400">Prep</span>Wise
             </h2>
             <p className="mt-2">Your AI-powered interview assistant</p>
           </div>
