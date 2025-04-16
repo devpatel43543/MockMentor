@@ -54,7 +54,6 @@ const { questions, jdID } = useContext(QuestionContext);
             }, 1000);
         } catch (err) {
             console.error("Error starting recording:", err);
-            toast.error("Failed to access microphone. Please check permissions or use a supported browser.");
         }
     };
 
@@ -80,7 +79,6 @@ const { questions, jdID } = useContext(QuestionContext);
     const submitAnswer = async () => {
         if (!audioBlob || currentQuestionIndex >= questions.length) {
             console.error("No audio blob or invalid question index");
-            toast.error("No audio recorded or invalid question.");
             return;
         }
 
@@ -110,7 +108,6 @@ const { questions, jdID } = useContext(QuestionContext);
             await fetchFeedback(question.questionId);
         } catch (err) {
             console.error("Error uploading audio:", err);
-            toast.error("Failed to submit answer. Please try again.");
         } finally {
             setIsUploading(false);
             console.log("Uploading finished, isUploading set to false");
@@ -142,11 +139,9 @@ const { questions, jdID } = useContext(QuestionContext);
             // If this is the last question, mark session as complete
             if (currentQuestionIndex === questions.length - 1) {
                 setIsSessionComplete(true);
-                toast.info("You’ve answered all questions! Session complete.");
             }
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
-            toast.error("Failed to fetch feedback. Please try again.");
         } finally {
             setIsFeedbackLoading(false);
         }
@@ -168,7 +163,6 @@ const { questions, jdID } = useContext(QuestionContext);
     const requestSummaryReport = async () => {
         if (!jdID || !userId) {
             console.error("Missing jdID or userId");
-            toast.error("Cannot send report: Missing session or user information");
             return;
         }
 
@@ -187,18 +181,13 @@ const { questions, jdID } = useContext(QuestionContext);
 
             console.log("Report response:", response.status, response.data);
             if (response.status === 200) {
-                toast.success("Report sent successfully! Check your email.", {
-                    onClose: () => {
-                        console.log("Toast closed, navigating to homepage");
-                        navigate("/home");
-                    },
-                });
+               
+                navigate("/home");
             } else {
                 throw new Error("Failed to send report");
             }
         } catch (err) {
             console.error("Error sending report:", err);
-            toast.error("Failed to send report. Please try again.");
         }
     };
 
@@ -231,7 +220,6 @@ const { questions, jdID } = useContext(QuestionContext);
                         </button>
                     </div>
                 </div>
-                <ToastContainer position="top-right" autoClose={2000} />
             </div>
         );
     }
@@ -358,4 +346,3 @@ const { questions, jdID } = useContext(QuestionContext);
 };
 
 export default RecordAnswer;
-
