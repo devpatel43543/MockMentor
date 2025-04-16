@@ -178,7 +178,7 @@ export default function Register() {
                     <div className="relative">
                         <div className="text-center mb-6 space-y-2">
                             <h2 className="text-2xl font-semibold text-slate-800">Create an Account</h2>
-                            <p className="text-slate-500">Join PrepWise and start your interview preparation</p>
+                            <p className="text-slate-500">Join MockMentor and start your interview preparation</p>
                         </div>
 
                         <div className="space-y-6">
