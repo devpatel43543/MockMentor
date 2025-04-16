@@ -1,172 +1,11 @@
 import React, { useState, useEffect, useContext, useRef} from "react";
-import { useNavigate } from "react-router-dom";\
-const navigate = useNavigate();
 import QuestionContext from "../context/QuestionContext";
 import RecordRTC from "recordrtc";
 import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const RecordAnswer = () => {
     
-    // const { questions } = useContext(QuestionContext);
-    // const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    // const [isRecording, setIsRecording] = useState(false);
-    // const [recordingTime, setRecordingTime] = useState(0);
-    // const [audioBlob, setAudioBlob] = useState(null);
-    // const [audioUrl, setAudioUrl] = useState(null);
-    // const [isUploading, setIsUploading] = useState(false);
-    // const [feedback, setFeedback] = useState(null); // Store feedback
-    // const [isFeedbackLoading, setIsFeedbackLoading] = useState(false); // Track feedback loading
-    // const recorderRef = useRef(null);
-    // const intervalRef = useRef(null);
-
-    // const userId = getUserIdFromToken();
-    // const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
-    // console.log(backendUrl)
-
-    // const formatTime = (time) => {
-    //     const minutes = Math.floor(time / 60);
-    //     const seconds = time % 60;
-    //     return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
-    // };
-
-    // const startRecording = async () => {
-    //     try {
-    //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    //         const recorder = new RecordRTC(stream, {
-    //             type: "audio",
-    //             recorderType: RecordRTC.StereoAudioRecorder,
-    //             mimeType: "audio/mp3",
-    //         });
-
-    //         recorderRef.current = recorder;
-    //         recorder.startRecording();
-    //         setIsRecording(true);
-    //         setRecordingTime(0);
-    //         console.log("Recording started");
-
-    //         intervalRef.current = setInterval(() => {
-    //             setRecordingTime((prevTime) => prevTime + 1);
-    //         }, 1000);
-    //     } catch (err) {
-    //         console.error("Error starting recording:", err);
-    //         alert("Failed to access microphone. Please check permissions.");
-    //     }
-    // };
-
-    // const stopRecording = () => {
-    //     if (recorderRef.current) {
-    //         setIsRecording(false);
-    //         clearInterval(intervalRef.current);
-    //         console.log("Stopping recording");
-
-    //         recorderRef.current.stopRecording(() => {
-    //             const blob = recorderRef.current.getBlob();
-    //             console.log("Recording stopped, blob size:", blob.size);
-    //             setAudioBlob(blob);
-    //             setAudioUrl(URL.createObjectURL(blob));
-    //             recorderRef.current.getTracks().forEach((track) => track.stop());
-    //         });
-    //     }
-    // };
-
-    // const submitAnswer = async () => {
-    //     if (!audioBlob || currentQuestionIndex >= questions.length) {
-    //         console.error("No audio blob or invalid question index");
-    //         return;
-    //     }
-
-    //     setIsUploading(true);
-    //     console.log("Submitting answer, uploading started");
-
-    //     const question = questions[currentQuestionIndex];
-    //     const formData = new FormData();
-    //     formData.append("audio", audioBlob, `${userId}_${Date.now()}_${question.questionId}.mp3`);
-    //     formData.append("userId", userId);
-    //     formData.append("questionId", question.questionId);
-    //     formData.append("questionText", question.questionText);
-
-    //     try {
-    //         console.log("Sending upload request to backend");
-    //         const response = await axios.post(`${backendUrl}/recording/uploadRecording`, formData, {
-    //             headers: {
-    //                 "Content-Type": "multipart/form-data",
-    //             },
-    //         });
-
-    //         console.log("Upload response:", response.status, response.data);
-    //         if (response.status !== 200) throw new Error("Upload failed");
-
-    //         // Clear audio and start feedback fetching
-    //         setAudioUrl(null);
-    //         setAudioBlob(null);
-    //         await fetchFeedback(question.questionId);
-    //     } catch (err) {
-    //         console.error("Error uploading audio:", err);
-    //         alert("Failed to submit answer. Please try again.");
-    //     } finally {
-    //         setIsUploading(false);
-    //         console.log("Uploading finished, isUploading set to false");
-    //     }
-    // };
-
-    // const fetchFeedback = async (questionId) => {
-    //     setIsFeedbackLoading(true);
-    //     setFeedback(null); // Clear previous feedback
-    //     const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
-    //     const fullUrl = `${apiGatewayUrl}/feedback`;
-    //     console.log("Full URL for feedback:", fullUrl);
-    //     console.log("User ID:", userId);
-    //     console.log("Question ID:", questionId);
-    //     try {
-    //         console.log("Calling get-feedback Lambda function");
-    //         const feedbackResponse = await axios.post(
-    //             // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
-    //             //`${apiGatewayUrl}/feedback`,
-    //             fullUrl,
-    //             {
-    //                 userId,
-    //                 questionId,
-    //             },
-    //             {
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                 },
-    //             }
-    //         );
-
-    //         console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-    //         console.log("Parsed feedback data:", feedbackResponse);
-    //         console.log("Feedback:", feedbackResponse.data.feedback);
-    //         setFeedback(feedbackResponse.data.feedback);
-    //     } catch (err) {
-    //         console.error("Error calling feedback Lambda:", err);
-    //         alert("Failed to fetch feedback. Please try again.");
-    //     } finally {
-    //         setIsFeedbackLoading(false);
-    //     }
-    // };
-
-    // const goToNextQuestion = () => {
-    //     if (currentQuestionIndex + 1 < questions.length) {
-    //         setCurrentQuestionIndex(currentQuestionIndex + 1);
-    //         setFeedback(null); // Clear feedback for the next question
-    //         console.log("Moved to next question, index:", currentQuestionIndex + 1);
-    //     }
-    // };
-
-    // if (!questions?.length) return <div>No questions available</div>;
-
-    // if (currentQuestionIndex >= questions.length) {
-    //     return (
-    //         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
-    //             <div className="text-center">
-    //                 <h2 className="text-2xl font-bold text-slate-800 mb-4">All Questions Completed!</h2>
-    //                 <p className="text-slate-600">Thank you for your responses.</p>
-    //             </div>
-    //         </div>
-    //     );
-    // }
     const { questions, jdID } = useContext(QuestionContext); // Assume jdID is in context
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
@@ -390,7 +229,7 @@ const RecordAnswer = () => {
             <header className="bg-white border-b border-slate-200 py-4 px-6">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <h1 className="text-xl font-bold text-slate-800">
-                        <span className="text-blue-600">Mock</span>Mentor
+                        <span className="text-blue-600">Prep</span>Wise
                     </h1>
                 </div>
             </header>
