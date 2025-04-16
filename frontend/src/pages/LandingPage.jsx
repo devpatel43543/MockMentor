@@ -20,7 +20,7 @@ function landingPage() {
               AI-Powered Interview Prep
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">
-              Land Your Dream Job with <span className="text-blue-600">Prep</span>Wise
+              Land Your Dream Job with <span className="text-blue-600">Mock</span>Mentor
             </h1>
             <p className="text-lg text-slate-600">
               Simulate real interviews, get AI feedback, and build confidence before your big day.
@@ -240,7 +240,7 @@ function landingPage() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
             <h2 className="text-2xl font-bold text-white">
-              <span className="text-blue-400">Prep</span>Wise
+              <span className="text-blue-400">Mock</span>Mentor
             </h2>
             <p className="mt-2">Your AI-powered interview assistant</p>
           </div>
