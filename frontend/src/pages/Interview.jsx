@@ -5,21 +5,182 @@ import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
 
 const RecordAnswer = () => {
-    const { questions } = useContext(QuestionContext);
+    
+    // const { questions } = useContext(QuestionContext);
+    // const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    // const [isRecording, setIsRecording] = useState(false);
+    // const [recordingTime, setRecordingTime] = useState(0);
+    // const [audioBlob, setAudioBlob] = useState(null);
+    // const [audioUrl, setAudioUrl] = useState(null);
+    // const [isUploading, setIsUploading] = useState(false);
+    // const [feedback, setFeedback] = useState(null); // Store feedback
+    // const [isFeedbackLoading, setIsFeedbackLoading] = useState(false); // Track feedback loading
+    // const recorderRef = useRef(null);
+    // const intervalRef = useRef(null);
+
+    // const userId = getUserIdFromToken();
+    // const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
+    // console.log(backendUrl)
+
+    // const formatTime = (time) => {
+    //     const minutes = Math.floor(time / 60);
+    //     const seconds = time % 60;
+    //     return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+    // };
+
+    // const startRecording = async () => {
+    //     try {
+    //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    //         const recorder = new RecordRTC(stream, {
+    //             type: "audio",
+    //             recorderType: RecordRTC.StereoAudioRecorder,
+    //             mimeType: "audio/mp3",
+    //         });
+
+    //         recorderRef.current = recorder;
+    //         recorder.startRecording();
+    //         setIsRecording(true);
+    //         setRecordingTime(0);
+    //         console.log("Recording started");
+
+    //         intervalRef.current = setInterval(() => {
+    //             setRecordingTime((prevTime) => prevTime + 1);
+    //         }, 1000);
+    //     } catch (err) {
+    //         console.error("Error starting recording:", err);
+    //         alert("Failed to access microphone. Please check permissions.");
+    //     }
+    // };
+
+    // const stopRecording = () => {
+    //     if (recorderRef.current) {
+    //         setIsRecording(false);
+    //         clearInterval(intervalRef.current);
+    //         console.log("Stopping recording");
+
+    //         recorderRef.current.stopRecording(() => {
+    //             const blob = recorderRef.current.getBlob();
+    //             console.log("Recording stopped, blob size:", blob.size);
+    //             setAudioBlob(blob);
+    //             setAudioUrl(URL.createObjectURL(blob));
+    //             recorderRef.current.getTracks().forEach((track) => track.stop());
+    //         });
+    //     }
+    // };
+
+    // const submitAnswer = async () => {
+    //     if (!audioBlob || currentQuestionIndex >= questions.length) {
+    //         console.error("No audio blob or invalid question index");
+    //         return;
+    //     }
+
+    //     setIsUploading(true);
+    //     console.log("Submitting answer, uploading started");
+
+    //     const question = questions[currentQuestionIndex];
+    //     const formData = new FormData();
+    //     formData.append("audio", audioBlob, `${userId}_${Date.now()}_${question.questionId}.mp3`);
+    //     formData.append("userId", userId);
+    //     formData.append("questionId", question.questionId);
+    //     formData.append("questionText", question.questionText);
+
+    //     try {
+    //         console.log("Sending upload request to backend");
+    //         const response = await axios.post(`${backendUrl}/recording/uploadRecording`, formData, {
+    //             headers: {
+    //                 "Content-Type": "multipart/form-data",
+    //             },
+    //         });
+
+    //         console.log("Upload response:", response.status, response.data);
+    //         if (response.status !== 200) throw new Error("Upload failed");
+
+    //         // Clear audio and start feedback fetching
+    //         setAudioUrl(null);
+    //         setAudioBlob(null);
+    //         await fetchFeedback(question.questionId);
+    //     } catch (err) {
+    //         console.error("Error uploading audio:", err);
+    //         alert("Failed to submit answer. Please try again.");
+    //     } finally {
+    //         setIsUploading(false);
+    //         console.log("Uploading finished, isUploading set to false");
+    //     }
+    // };
+
+    // const fetchFeedback = async (questionId) => {
+    //     setIsFeedbackLoading(true);
+    //     setFeedback(null); // Clear previous feedback
+    //     const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+    //     const fullUrl = `${apiGatewayUrl}/feedback`;
+    //     console.log("Full URL for feedback:", fullUrl);
+    //     console.log("User ID:", userId);
+    //     console.log("Question ID:", questionId);
+    //     try {
+    //         console.log("Calling get-feedback Lambda function");
+    //         const feedbackResponse = await axios.post(
+    //             // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
+    //             //`${apiGatewayUrl}/feedback`,
+    //             fullUrl,
+    //             {
+    //                 userId,
+    //                 questionId,
+    //             },
+    //             {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                 },
+    //             }
+    //         );
+
+    //         console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
+    //         console.log("Parsed feedback data:", feedbackResponse);
+    //         console.log("Feedback:", feedbackResponse.data.feedback);
+    //         setFeedback(feedbackResponse.data.feedback);
+    //     } catch (err) {
+    //         console.error("Error calling feedback Lambda:", err);
+    //         alert("Failed to fetch feedback. Please try again.");
+    //     } finally {
+    //         setIsFeedbackLoading(false);
+    //     }
+    // };
+
+    // const goToNextQuestion = () => {
+    //     if (currentQuestionIndex + 1 < questions.length) {
+    //         setCurrentQuestionIndex(currentQuestionIndex + 1);
+    //         setFeedback(null); // Clear feedback for the next question
+    //         console.log("Moved to next question, index:", currentQuestionIndex + 1);
+    //     }
+    // };
+
+    // if (!questions?.length) return <div>No questions available</div>;
+
+    // if (currentQuestionIndex >= questions.length) {
+    //     return (
+    //         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
+    //             <div className="text-center">
+    //                 <h2 className="text-2xl font-bold text-slate-800 mb-4">All Questions Completed!</h2>
+    //                 <p className="text-slate-600">Thank you for your responses.</p>
+    //             </div>
+    //         </div>
+    //     );
+    // }
+    const { questions, jdID } = useContext(QuestionContext); // Assume jdID is in context
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const [audioBlob, setAudioBlob] = useState(null);
     const [audioUrl, setAudioUrl] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [feedback, setFeedback] = useState(null); // Store feedback
-    const [isFeedbackLoading, setIsFeedbackLoading] = useState(false); // Track feedback loading
+    const [feedback, setFeedback] = useState(null);
+    const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
     const recorderRef = useRef(null);
     const intervalRef = useRef(null);
+    const navigate = useNavigate();
 
     const userId = getUserIdFromToken();
-    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
-    console.log(backendUrl)
+    const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
+    const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
 
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60);
@@ -94,7 +255,6 @@ const RecordAnswer = () => {
             console.log("Upload response:", response.status, response.data);
             if (response.status !== 200) throw new Error("Upload failed");
 
-            // Clear audio and start feedback fetching
             setAudioUrl(null);
             setAudioBlob(null);
             await fetchFeedback(question.questionId);
@@ -109,8 +269,7 @@ const RecordAnswer = () => {
 
     const fetchFeedback = async (questionId) => {
         setIsFeedbackLoading(true);
-        setFeedback(null); // Clear previous feedback
-        const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+        setFeedback(null);
         const fullUrl = `${apiGatewayUrl}/feedback`;
         console.log("Full URL for feedback:", fullUrl);
         console.log("User ID:", userId);
@@ -118,8 +277,6 @@ const RecordAnswer = () => {
         try {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
-                // "https://mo1qwudxgb.execute-api.us-east-1.amazonaws.com/dev/get-feedback",
-                //`${apiGatewayUrl}/feedback`,
                 fullUrl,
                 {
                     userId,
@@ -133,7 +290,6 @@ const RecordAnswer = () => {
             );
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-            console.log("Parsed feedback data:", feedbackResponse);
             console.log("Feedback:", feedbackResponse.data.feedback);
             setFeedback(feedbackResponse.data.feedback);
         } catch (err) {
@@ -147,8 +303,53 @@ const RecordAnswer = () => {
     const goToNextQuestion = () => {
         if (currentQuestionIndex + 1 < questions.length) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
-            setFeedback(null); // Clear feedback for the next question
+            setFeedback(null);
             console.log("Moved to next question, index:", currentQuestionIndex + 1);
+        }
+    };
+
+    const restartInterview = () => {
+        console.log("Restarting interview, navigating to homepage");
+        navigate("/");
+    };
+
+    const requestSummaryReport = async () => {
+        if (!jdID || !userId) {
+            console.error("Missing jdID or userId");
+            toast.error("Cannot send report: Missing session or user information");
+            return;
+        }
+
+        const fullUrl = `${apiGatewayUrl}/send-report`;
+        console.log("Requesting summary report, URL:", fullUrl);
+        try {
+            const response = await axios.post(
+                fullUrl,
+                {
+                    jdID: jdID,
+                    userId:userId,
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            console.log("Report response:", response.status, response.data);
+            if (response.status === 200) {
+                toast.success("Report sent successfully! Check your email.", {
+                    onClose: () => {
+                        console.log("Toast closed, navigating to homepage");
+                        navigate("/");
+                    },
+                });
+            } else {
+                throw new Error("Failed to send report");
+            }
+        } catch (err) {
+            console.error("Error sending report:", err);
+            toast.error("Failed to send report. Please try again.");
         }
     };
 
@@ -157,13 +358,30 @@ const RecordAnswer = () => {
     if (currentQuestionIndex >= questions.length) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-4">All Questions Completed!</h2>
-                    <p className="text-slate-600">Thank you for your responses.</p>
+                <div className="text-center bg-white p-8 rounded-lg shadow-lg">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-4">Session Completed!</h2>
+                    <p className="text-slate-600 mb-6">Thank you for completing the interview session.</p>
+                    <div className="flex justify-center gap-4">
+                        <button
+                            onClick={restartInterview}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                        >
+                            Restart Interview
+                        </button>
+                        <button
+                            onClick={requestSummaryReport}
+                            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                        >
+                            Get Summary Report
+                        </button>
+                    </div>
                 </div>
+                <ToastContainer position="top-right" autoClose={2000} />
             </div>
         );
     }
+
+    const question = questions[currentQuestionIndex];
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
@@ -286,3 +504,4 @@ const RecordAnswer = () => {
 };
 
 export default RecordAnswer;
+

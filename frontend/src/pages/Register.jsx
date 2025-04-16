@@ -7,15 +7,15 @@ export default function Register() {
     const [error, setError] = useState(null);
     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL
     console.log(backendUrl)
-    
-        useEffect(() => {
-            // Check if the user is already logged in
-            const token = localStorage.getItem("token");
-            if (token) {
-                // Redirect to dashboard or home page
-                navigate("/home");
-            }
+
+    useEffect(() => {
+        // Check if the user is already logged in
+        const token = localStorage.getItem("token");
+        if (token) {
+            // Redirect to dashboard or home page
+            navigate("/home");
         }
+    }
         , []);
     async function onSubmit(event) {
         event.preventDefault();
@@ -48,10 +48,19 @@ export default function Register() {
 
             if (!response.status === 400) {
                 throw new Error(result.error || 'Registration failed');
+            } else {
+                const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+                const fullUrl = `${apiGatewayUrl}/create-topic`
+                console.log(fullUrl)
+                const notification = await axios.post(fullUrl, {
+                    email: data.email
+                }
+                );
+                console.log(notification)
             }
-
             // Handle successful registration
-            console.log('Registration successful:', result);
+            // Handle successful registration
+            console.log('check email Registration successful:', result);
             // You might want to redirect to login page or auto-login here
             // For example: window.location.href = '/login';
 
@@ -241,7 +250,7 @@ export default function Register() {
                             </form>
 
 
-                         
+
 
                             <div className="text-center text-sm text-slate-500 mt-6">
                                 Already have an account?{" "}
