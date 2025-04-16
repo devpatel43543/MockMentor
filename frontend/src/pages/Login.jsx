@@ -62,7 +62,7 @@ export default function LoginPage() {
                             Interview Preparation
                         </div>
                         <h1 className="text-4xl font-bold text-slate-800">
-                            <span className="text-blue-600">Prep</span>Wise
+                            <span className="text-blue-600">Mock</span>Mentor
                         </h1>
                         <p className="text-xl text-slate-600 mt-2">
                             Your AI-powered interview assistant
