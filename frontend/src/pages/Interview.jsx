@@ -5,7 +5,7 @@ import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 const RecordAnswer = () => {
-    const { questions, jdID } = useContext(QuestionContext);
+   const { questions, jdID } = useContext(QuestionContext);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -22,6 +22,24 @@ const RecordAnswer = () => {
     const userId = getUserIdFromToken();
     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
     const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
+
+    // Ensure microphone permissions on mount
+    useEffect(() => {
+        navigator.mediaDevices
+            .getUserMedia({ audio: true })
+            .then((stream) => {
+                stream.getTracks().forEach((track) => track.stop()); // Release immediately
+                console.log("Microphone access granted");
+            })
+            .catch((err) => {
+                console.error("Microphone access denied:", err);
+                toast.error("Microphone access is required. Please enable it in your browser settings.");
+            });
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, []);
 
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60);
@@ -64,7 +82,10 @@ const RecordAnswer = () => {
                 console.log("Recording stopped, blob size:", blob.size);
                 setAudioBlob(blob);
                 setAudioUrl(URL.createObjectURL(blob));
-                recorderRef.current.getTracks().forEach((track) => track.stop());
+                // Ensure tracks are stopped
+                if (recorderRef.current.stream) {
+                    recorderRef.current.stream.getTracks().forEach((track) => track.stop());
+                }
             });
         }
     };
@@ -194,35 +215,50 @@ const RecordAnswer = () => {
         }
     };
 
-    if (!questions?.length) return <div>No questions available</div>;
+    if (!questions?.length) {
+        return <div className="text-center text-slate-600">No questions available</div>;
+    }
 
     if (isSessionComplete) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
-                <div className="text-center bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
-                    {feedback && (
-                        <div className="mb-6 p-4 bg-slate-100 rounded-md">
-                            <h3 className="text-lg font-semibold text-slate-800">Feedback for Last Question</h3>
-                            <p className="text-slate-600">{feedback}</p>
-                        </div>
-                    )}
-                    <h2 className="text-2xl font-bold text-slate-800 mb-4">Session Completed!</h2>
-                    <p className="text-slate-600 mb-6">Thank you for completing the interview session.</p>
-                    <div className="flex justify-center gap-4">
-                        <button
-                            onClick={restartInterview}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                        >
-                            Restart Interview
-                        </button>
-                        <button
-                            onClick={requestSummaryReport}
-                            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                        >
-                            Get Summary Report
-                        </button>
+            <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
+                <header className="bg-white border-b border-slate-200 py-4 px-6">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between">
+                        <h1 className="text-xl font-bold text-slate-800">
+                            <span className="text-blue-600">Prep</span>Wise
+                        </h1>
                     </div>
-                </div>
+                </header>
+                <main className="flex-1 flex items-center justify-center p-6">
+                    <div className="w-full max-w-2xl">
+                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 text-center">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-4">Session Completed!</h2>
+                            {feedback && (
+                                <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                                    <h3 className="text-lg font-semibold text-green-800 mb-2">
+                                        Feedback for Last Question
+                                    </h3>
+                                    <p className="text-gray-700">{feedback}</p>
+                                </div>
+                            )}
+                            <p className="text-slate-600 mb-6">Thank you for completing the interview session.</p>
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    onClick={restartInterview}
+                                    className="py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+                                >
+                                    Restart Interview
+                                </button>
+                                <button
+                                    onClick={requestSummaryReport}
+                                    className="py-4 px-6 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium"
+                                >
+                                    Get Summary Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
                 <ToastContainer position="top-right" autoClose={2000} />
             </div>
         );
