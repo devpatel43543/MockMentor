@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext, useRef ,useNavigate} from "react";
 import QuestionContext from "../context/QuestionContext";
 import RecordRTC from "recordrtc";
 import { getUserIdFromToken } from "../utils/getUserIdFromToken";
@@ -310,7 +310,7 @@ const RecordAnswer = () => {
 
     const restartInterview = () => {
         console.log("Restarting interview, navigating to homepage");
-        navigate("/");
+        navigate("/home");
     };
 
     const requestSummaryReport = async () => {
@@ -341,7 +341,7 @@ const RecordAnswer = () => {
                 toast.success("Report sent successfully! Check your email.", {
                     onClose: () => {
                         console.log("Toast closed, navigating to homepage");
-                        navigate("/");
+                        navigate("/home");
                     },
                 });
             } else {
