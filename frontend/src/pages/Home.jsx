@@ -143,7 +143,7 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-slate-200 py-4 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold text-slate-800">
-            <span className="text-blue-600">Prep</span>Wise
+            <span className="text-blue-600">Mock</span>Mentor
           </h1>
 
           <div className="flex items-center space-x-4">
