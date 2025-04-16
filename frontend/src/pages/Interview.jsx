@@ -5,8 +5,7 @@ import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 const RecordAnswer = () => {
-    
-    const { questions, jdID } = useContext(QuestionContext); // Assume jdID is in context
+    const { questions, jdID } = useContext(QuestionContext);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -15,6 +14,7 @@ const RecordAnswer = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+    const [isSessionComplete, setIsSessionComplete] = useState(false);
     const recorderRef = useRef(null);
     const intervalRef = useRef(null);
     const navigate = useNavigate();
@@ -49,7 +49,7 @@ const RecordAnswer = () => {
             }, 1000);
         } catch (err) {
             console.error("Error starting recording:", err);
-            alert("Failed to access microphone. Please check permissions.");
+            toast.error("Failed to access microphone. Please check permissions.");
         }
     };
 
@@ -72,6 +72,7 @@ const RecordAnswer = () => {
     const submitAnswer = async () => {
         if (!audioBlob || currentQuestionIndex >= questions.length) {
             console.error("No audio blob or invalid question index");
+            toast.error("No audio recorded or invalid question.");
             return;
         }
 
@@ -101,7 +102,7 @@ const RecordAnswer = () => {
             await fetchFeedback(question.questionId);
         } catch (err) {
             console.error("Error uploading audio:", err);
-            alert("Failed to submit answer. Please try again.");
+            toast.error("Failed to submit answer. Please try again.");
         } finally {
             setIsUploading(false);
             console.log("Uploading finished, isUploading set to false");
@@ -119,10 +120,7 @@ const RecordAnswer = () => {
             console.log("Calling get-feedback Lambda function");
             const feedbackResponse = await axios.post(
                 fullUrl,
-                {
-                    userId,
-                    questionId,
-                },
+                { userId, questionId },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -131,11 +129,16 @@ const RecordAnswer = () => {
             );
 
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
-            console.log("Feedback:", feedbackResponse.data.feedback);
             setFeedback(feedbackResponse.data.feedback);
+
+            // If this is the last question, mark session as complete
+            if (currentQuestionIndex === questions.length - 1) {
+                setIsSessionComplete(true);
+                toast.info("You’ve answered all questions! Session complete.");
+            }
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
-            alert("Failed to fetch feedback. Please try again.");
+            toast.error("Failed to fetch feedback. Please try again.");
         } finally {
             setIsFeedbackLoading(false);
         }
@@ -161,15 +164,12 @@ const RecordAnswer = () => {
             return;
         }
 
-        const fullUrl = `${apiGatewayUrl}/send-report`;
+        const fullUrl = `${apiGatewayUrl}/interview-report`;
         console.log("Requesting summary report, URL:", fullUrl);
         try {
             const response = await axios.post(
                 fullUrl,
-                {
-                    jdID: jdID,
-                    userId:userId,
-                },
+                { jdID, userId },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -196,10 +196,16 @@ const RecordAnswer = () => {
 
     if (!questions?.length) return <div>No questions available</div>;
 
-    if (currentQuestionIndex >= questions.length) {
+    if (isSessionComplete) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
-                <div className="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div className="text-center bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
+                    {feedback && (
+                        <div className="mb-6 p-4 bg-slate-100 rounded-md">
+                            <h3 className="text-lg font-semibold text-slate-800">Feedback for Last Question</h3>
+                            <p className="text-slate-600">{feedback}</p>
+                        </div>
+                    )}
                     <h2 className="text-2xl font-bold text-slate-800 mb-4">Session Completed!</h2>
                     <p className="text-slate-600 mb-6">Thank you for completing the interview session.</p>
                     <div className="flex justify-center gap-4">
@@ -223,7 +229,6 @@ const RecordAnswer = () => {
     }
 
     const question = questions[currentQuestionIndex];
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
             <header className="bg-white border-b border-slate-200 py-4 px-6">
