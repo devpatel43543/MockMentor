@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useContext, useRef} from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import QuestionContext from "../context/QuestionContext";
 import RecordRTC from "recordrtc";
 import { getUserIdFromToken } from "../utils/getUserIdFromToken";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 const RecordAnswer = () => {
-const { questions, jdID } = useContext(QuestionContext);
+    const { questions, jdID } = useContext(QuestionContext);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
@@ -23,16 +25,29 @@ const { questions, jdID } = useContext(QuestionContext);
     const backendUrl = import.meta.env.VITE_BACKEND_BASE_URL;
     const apiGatewayUrl = import.meta.env.VITE_API_GATEWAY_URL;
 
+    // Debug context and userId
+    useEffect(() => {
+        console.log("QuestionContext:", { questions, jdID });
+        console.log("userId:", userId);
+        if (!jdID) {
+            console.error("jdID is missing in QuestionContext");
+            toast.error("Job ID is missing. Please try again.");
+        }
+        if (!userId) {
+            console.error("userId is missing from token");
+            toast.error("User authentication failed. Please log in again.");
+            navigate("/login");
+        }
+    }, [jdID, userId, navigate]);
+
     const formatTime = (time) => {
         const minutes = Math.floor(time / 60);
         const seconds = time % 60;
         return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
-
     };
 
     const startRecording = async () => {
         try {
-            // Check if mediaDevices is supported
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error("Media devices not supported in this browser.");
             }
@@ -44,7 +59,7 @@ const { questions, jdID } = useContext(QuestionContext);
             });
 
             recorderRef.current = recorder;
-            recorderRef.current.stream = stream; // Store stream for cleanup
+            recorderRef.current.stream = stream;
             recorder.startRecording();
             setIsRecording(true);
             setRecordingTime(0);
@@ -55,6 +70,7 @@ const { questions, jdID } = useContext(QuestionContext);
             }, 1000);
         } catch (err) {
             console.error("Error starting recording:", err);
+            toast.error("Failed to access microphone. Please check permissions.");
         }
     };
 
@@ -69,7 +85,6 @@ const { questions, jdID } = useContext(QuestionContext);
                 console.log("Recording stopped, blob size:", blob.size);
                 setAudioBlob(blob);
                 setAudioUrl(URL.createObjectURL(blob));
-                // Clean up stream tracks
                 if (recorderRef.current.stream) {
                     recorderRef.current.stream.getTracks().forEach((track) => track.stop());
                 }
@@ -80,6 +95,7 @@ const { questions, jdID } = useContext(QuestionContext);
     const submitAnswer = async () => {
         if (!audioBlob || currentQuestionIndex >= questions.length) {
             console.error("No audio blob or invalid question index");
+            toast.error("No recording available to submit.");
             return;
         }
 
@@ -109,6 +125,7 @@ const { questions, jdID } = useContext(QuestionContext);
             await fetchFeedback(question.questionId);
         } catch (err) {
             console.error("Error uploading audio:", err);
+            toast.error("Failed to upload recording. Please try again.");
         } finally {
             setIsUploading(false);
             console.log("Uploading finished, isUploading set to false");
@@ -137,12 +154,13 @@ const { questions, jdID } = useContext(QuestionContext);
             console.log("Feedback response:", feedbackResponse.status, feedbackResponse.data);
             setFeedback(feedbackResponse.data.feedback);
 
-            // If this is the last question, mark session as complete
             if (currentQuestionIndex === questions.length - 1) {
                 setIsSessionComplete(true);
+                toast.info("You’ve answered all questions! Session complete.");
             }
         } catch (err) {
             console.error("Error calling feedback Lambda:", err);
+            toast.error("Failed to fetch feedback. Please try again.");
         } finally {
             setIsFeedbackLoading(false);
         }
@@ -162,8 +180,10 @@ const { questions, jdID } = useContext(QuestionContext);
     };
 
     const requestSummaryReport = async () => {
+        console.log("requestSummaryReport called, jdID:", jdID, "userId:", userId);
         if (!jdID || !userId) {
-            console.error("Missing jdID or userId");
+            console.error("Missing jdID or userId", { jdID, userId });
+            toast.error("Cannot generate report: Missing job or user information.");
             return;
         }
 
@@ -182,13 +202,14 @@ const { questions, jdID } = useContext(QuestionContext);
 
             console.log("Report response:", response.status, response.data);
             if (response.status === 200) {
-               
+                toast.success("Report requested successfully!");
                 navigate("/home");
             } else {
                 throw new Error("Failed to send report");
             }
         } catch (err) {
             console.error("Error sending report:", err);
+            toast.error("Failed to request report. Please try again.");
         }
     };
 
