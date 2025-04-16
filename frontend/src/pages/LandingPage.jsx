@@ -81,7 +81,7 @@ function landingPage() {
     <section className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-800">How PrepWise Works</h2>
+          <h2 className="text-3xl font-bold text-slate-800">How MockMentor Works</h2>
           <p className="text-slate-600 mt-3 max-w-2xl mx-auto">
             Our AI-powered platform transforms your interview preparation in just three simple steps
           </p>
@@ -126,7 +126,7 @@ function landingPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex items-center gap-12">
           <div className="md:w-1/2 mb-10 md:mb-0">
-            <h2 className="text-3xl font-bold text-slate-800 mb-6">Why Job Seekers Love PrepWise</h2>
+            <h2 className="text-3xl font-bold text-slate-800 mb-6">Why Job Seekers Love MockMentor</h2>
             
             <div className="space-y-5">
               <div className="flex gap-3">
@@ -200,7 +200,7 @@ function landingPage() {
           </svg>
         </div>
         <blockquote className="text-2xl italic font-medium text-slate-700 mb-8">
-          "I was getting rejected after every interview until I found PrepWise. The targeted questions and feedback were exactly what I needed. Just got an offer from my top choice company!"
+          "I was getting rejected after every interview until I found MockMentor. The targeted questions and feedback were exactly what I needed. Just got an offer from my top choice company!"
         </blockquote>
         <div className="font-medium text-slate-800">Sarah K.</div>
         <div className="text-slate-600">Software Engineer at Google</div>
@@ -212,7 +212,7 @@ function landingPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to ace your next interview?</h2>
         <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-          Join thousands of job seekers who landed their dream jobs after preparing with PrepWise.
+          Join thousands of job seekers who landed their dream jobs after preparing with MockMentor.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <a
@@ -253,7 +253,7 @@ function landingPage() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm">
-          &copy; {new Date().getFullYear()} PrepWise. All rights reserved.
+          &copy; {new Date().getFullYear()} MockMentor. All rights reserved.
         </div>
       </div>
     </footer>
