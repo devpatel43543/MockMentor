@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext, useRef ,useNavigate} from "react";
+import React, { useState, useEffect, useContext, useRef} from "react";
+const navigate = useNavigate();
 import QuestionContext from "../context/QuestionContext";
 import RecordRTC from "recordrtc";
 import { getUserIdFromToken } from "../utils/getUserIdFromToken";
