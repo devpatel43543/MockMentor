@@ -179,39 +179,42 @@ const RecordAnswer = () => {
         navigate("/home");
     };
 
-    const requestSummaryReport = async () => {
-        console.log("requestSummaryReport called, jdID:", jd, "userId:", userId);
-        if (!jd || !userId) {
-            console.error("Missing jdID or userId", { jd, userId });
-            toast.error("Cannot generate report: Missing job or user information.");
-            return;
-        }
+   const requestSummaryReport = async () => {
+    console.log("requestSummaryReport called, jdID:", jd, "userId:", userId);
+    if (!jd || !userId) {
+        console.error("Missing jdID or userId", { jd, userId });
+        toast.error("Cannot generate report: Missing job or user information.");
+        return;
+    }
 
-        const fullUrl = `${apiGatewayUrl}/interview-report`;
-        console.log("Requesting summary report, URL:", fullUrl);
-        try {
-            const response = await axios.post(
-                fullUrl,
-                { jd, userId },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            console.log("Report response:", response.status, response.data);
-            if (response.status === 200) {
-                toast.success("Report requested successfully!");
-                navigate("/home");
-            } else {
-                throw new Error("Failed to send report");
+    const fullUrl = `${apiGatewayUrl}/interview-report`;
+    console.log("Requesting summary report, URL:", fullUrl, "Payload:", { jdID: jd, userId });
+    try {
+        const response = await axios.post(
+            fullUrl,
+            {
+                jdID: jd,
+                userId,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
             }
-        } catch (err) {
-            console.error("Error sending report:", err);
-            toast.error("Failed to request report. Please try again.");
+        );
+
+        console.log("Report response:", response.status, response.data);
+        if (response.status === 200) {
+            toast.success("Report requested successfully!");
+            navigate("/home");
+        } else {
+            throw new Error("Failed to send report");
         }
-    };
+    } catch (err) {
+        console.error("Error sending report:", err.response?.data || err);
+        toast.error("Failed to request report: " + (err.response?.data?.error || "Please try again."));
+    }
+};
 
     if (!questions?.length) return <div>No questions available</div>;
 
