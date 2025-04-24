@@ -37,7 +37,7 @@ def table_exists(table_name):
 
 # Function to create table if it doesn't exist
 def create_table(table_name, key_schema, attribute_definitions):
-    print(f"⚠️ Table {table_name} not found. Creating...")
+    print(f"Table {table_name} not found. Creating...")
     try:
         dynamodb.create_table(
             TableName=table_name,

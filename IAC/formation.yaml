@@ -1,0 +1,955 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation Template to create a VPC with two public subnets, two private subnets, an Internet Gateway, a NAT Gateway, a DynamoDB VPC Endpoint, Frontend and Backend Application Load Balancers, and Auto Scaling Groups.'
+Parameters:
+  OpenAIApiKey:
+    Description: The OpenAI API key to be used in the Lambda function
+    Type: String
+    NoEcho: true
+    Default: dev
+  DynamoDBTable:
+    Type: String
+    Default: my-dynamodb-table
+  FeedbackTable:
+    Type: String
+    Default: my-feedback-table
+  TargetBucket:
+    Type: String
+    Default: my-target-bucket
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: InterviewPrepVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: InterviewPrepIGW
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PublicSubnet1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PublicSubnet2
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PublicSubnet3
+
+  PublicSubnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.4.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PublicSubnet4
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+      - Key: Name
+        Value: PublicRouteTable
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet4
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.5.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PrivateSubnet1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.6.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+      - Key: Name
+        Value: PrivateSubnet2
+
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+      - Key: Name
+        Value: MyNatGateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+      - Key: Name
+        Value: PrivateRouteTable
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  DynamoDBVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref MyVPC
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
+      VpcEndpointType: Gateway
+      RouteTableIds:
+      - !Ref PrivateRouteTable
+      Tags:
+      - Key: Name
+        Value: DynamoDB-VPC-Endpoint
+
+  FrontendALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow HTTP from anywhere to Frontend ALB"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: FrontendALBSecurityGroup
+
+  FrontendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH & HTTP"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        sourceSecurityGroupId: !Ref FrontendALBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: FrontendSecurityGroup
+
+  FrontendLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    DependsOn: [ BackendALB, UploadApiDeployment ]
+    Properties:
+      LaunchTemplateName: FrontendLaunchTemplate
+      VersionDescription: "Version 1"
+      LaunchTemplateData:
+        ImageId: ami-071226ecf16aa7d96
+        InstanceType: t2.micro
+        KeyName: dev-key
+        SecurityGroupIds:
+        - !Ref FrontendSecurityGroup
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: FrontendInstance
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -e
+            exec > /var/log/user-data.log 2>&1
+            echo "Updating packages..."
+            sudo yum update -y
+            echo "Installing Docker..."
+            sudo yum install -y docker
+            sudo service docker start
+            sudo usermod -a -G docker ec2-user
+            echo "Installing Git..."
+            sudo yum install -y git
+            echo "Current directory before cloning: $(/bin/pwd)"
+            cd /home/ec2-user
+            echo "Cloning repository..."
+            git clone https://github.com/devpatel43543/interviewPrep.git || { echo "Git clone failed"; exit 1; }
+            echo "Listing directory contents after clone..."
+            ls -la /home/ec2-user
+            echo "Navigating to frontend directory..."
+            cd /home/ec2-user/interviewPrep/frontend
+            echo "Building Docker image with backend and API Gateway URLs..."
+            docker build \
+              --build-arg VITE_BACKEND_BASE_URL=http://${BackendALB.DNSName} \
+              --build-arg VITE_API_GATEWAY_URL=https://${UploadFileApi}.execute-api.${AWS::Region}.amazonaws.com/prod \
+              -t devkumar640/frontend_interviewprep .
+            echo "Running Docker container..."
+            docker run -d -p 80:80 --name frontend devkumar640/frontend_interviewprep
+            echo "Setup completed successfully."
+
+  FrontendALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: frontend-ALB
+      Scheme: internet-facing
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      SecurityGroups:
+      - !Ref FrontendALBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: frontend-ALB
+
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: frontend-TG
+      VpcId: !Ref MyVPC
+      Protocol: HTTP
+      Port: 80
+      TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 80
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 3
+      Tags:
+      - Key: Name
+        Value: FrontendTargetGroup
+
+  FrontendALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref FrontendALB
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref FrontendTargetGroup
+
+  FrontendASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn:
+    - FrontendLaunchTemplate
+    Properties:
+      AutoScalingGroupName: frontend-asg
+      VPCZoneIdentifier:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref FrontendLaunchTemplate
+        Version: !GetAtt FrontendLaunchTemplate.LatestVersionNumber
+      MinSize: 1
+      MaxSize: 2
+      DesiredCapacity: 1
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 500
+      TargetGroupARNs:
+      - !Ref FrontendTargetGroup
+      Tags:
+      - Key: Name
+        Value: frontend-asg
+        PropagateAtLaunch: true
+
+  BackendALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow HTTP from Frontend Instances"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: BackendALBSecurityGroup
+
+  BackendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow HTTP from Frontend ALB"
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3000
+        ToPort: 3000
+        SourceSecurityGroupId: !Ref BackendALBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: BackendSecurityGroup
+  BackendLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: BackendLaunchTemplate
+      VersionDescription: "Version 1"
+      LaunchTemplateData:
+        ImageId: ami-071226ecf16aa7d96
+        InstanceType: t2.micro
+        KeyName: dev-key
+        SecurityGroupIds:
+        - !Ref BackendSecurityGroup
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: BackendInstance
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            sudo yum update -y
+            sudo yum install -y docker
+            sudo service docker start
+            sudo usermod -a -G docker ec2-user
+            sudo docker pull devkumar640/backend_interviewprep:latest
+            sudo docker run -d  -p 3000:3000   --name my_backend_container devkumar640/backend_interviewprep:latest
+
+  BackendALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: backend-ALB
+      Scheme: internet-facing
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      SecurityGroups:
+      - !Ref BackendALBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: backend-ALB
+
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: backend-TG
+      VpcId: !Ref MyVPC
+      Protocol: HTTP
+      Port: 3000
+      TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 3
+
+  BackendALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref BackendALB
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref BackendTargetGroup
+
+  BackendASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn:
+    - BackendLaunchTemplate
+    Properties:
+      AutoScalingGroupName: backend-asg
+      VPCZoneIdentifier:
+      - !Ref PrivateSubnet1
+      - !Ref PrivateSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref BackendLaunchTemplate
+        Version: !GetAtt BackendLaunchTemplate.LatestVersionNumber
+      MinSize: 1
+      MaxSize: 2
+      DesiredCapacity: 1
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 500
+      TargetGroupARNs:
+      - !Ref BackendTargetGroup
+      Tags:
+      - Key: Name
+        Value: backend-asg
+        PropagateAtLaunch: true
+
+  LambdaSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: /lambda/openai-api-key
+      Description: Environment variables for AI Lambdas
+      SecretString: !Sub |
+        {
+          "OPENAI_API_KEY": "${OpenAIApiKey}",
+          "DYNAMODB_TABLE": "${DynamoDBTable}",
+          "FEEDBACK_TABLE": "${FeedbackTable}",
+          "TARGET_BUCKET": "${TargetBucket}"
+        }
+        
+  InterviewReportTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: InterviewReportTopic
+      DisplayName: Interview Report Notifications
+            
+  GenerateQuestionsLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: GenerateQuestionsLambda
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Architectures:
+      - arm64
+      Code:
+        S3Bucket: formationzip101
+        S3Key: GenerateQuestionsLambda-11673c26-9ed5-46f0-b99a-83fed57b8e7c.zip
+      Layers:
+      - arn:aws:lambda:us-east-1:209469701524:layer:lambda-layer:1
+      Timeout: 120
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref LambdaSecret
+
+  FeedbackFromAILambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: FeedbackFromAILambda
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Architectures:
+      - arm64
+      Code:
+        S3Bucket: formationzip101
+        S3Key: FeedbackFromAILambda-3cb74f72-0e62-4d16-9707-75ef3fecf206.zip
+      Layers:
+      - arn:aws:lambda:us-east-1:209469701524:layer:lambda-layer:1
+      Timeout: 180
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref LambdaSecret
+
+  CreateTopicLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CreateTopicLambda
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Code:
+        S3Bucket: formationzip101
+        S3Key: topic-cration-6956cf6c-b53a-4d89-ad56-fef3c621a41a.zip
+      Timeout: 120
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref LambdaSecret
+
+  InterviewReportLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: InterviewReportLambda
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Code:
+        S3Bucket: formationzip101
+        S3Key: sns-lambda-7211cf61-cebe-4f27-94a2-272fd1110aec.zip
+      Timeout: 180
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref LambdaSecret
+
+  LambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: LambdaExecutionRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+        Policies:
+        - PolicyName: LambdaPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: Allow
+              Action:
+              - s3:PutObject
+              - s3:GetObject
+              Resource: "arn:aws:s3:::formationzip101/*"
+            - Effect: Allow
+              Action:
+              - secretsmanager:GetSecretValue
+              Resource: !Ref LambdaSecret
+            - Effect: Allow
+              Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              Resource: "*"
+            - Effect: Allow
+              Action:
+              - sns:Publish
+              Resource: !Ref InterviewReportTopic
+
+  ApiGatewayLambdaInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ApiGatewayLambdaInvokeRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: APIGatewayInvokeLambda
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource:
+            - !GetAtt GenerateQuestionsLambda.Arn
+            - !GetAtt FeedbackFromAILambda.Arn
+            - !GetAtt CreateTopicLambda.Arn
+            - !GetAtt InterviewReportLambda.Arn
+
+  UploadFileApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: UploadFileAPI
+      Description: API Gateway to trigger Lambda 
+      EndpointConfiguration:
+        Types:
+        - REGIONAL
+
+  UploadResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ParentId: !GetAtt UploadFileApi.RootResourceId
+      PathPart: upload
+
+  FeedbackResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ParentId: !GetAtt UploadFileApi.RootResourceId
+      PathPart: feedback
+
+  CreateTopicResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ParentId: !GetAtt UploadFileApi.RootResourceId
+      PathPart: create-topic
+
+  InterviewReportResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ParentId: !GetAtt UploadFileApi.RootResourceId
+      PathPart: interview-report
+
+  UploadMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ResourceId: !Ref UploadResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Credentials: !GetAtt ApiGatewayLambdaInvokeRole.Arn
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GenerateQuestionsLambda.Arn}/invocations"
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseTemplates:
+            application/json: ""
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Content-Type: true
+        ResponseModels:
+          application/json: "Empty"
+
+  FeedbackMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ResourceId: !Ref FeedbackResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Credentials: !GetAtt ApiGatewayLambdaInvokeRole.Arn
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FeedbackFromAILambda.Arn}/invocations"
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseTemplates:
+            application/json: ""
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+          method.response.header.Content-Type: true
+        ResponseModels:
+          application/json: "Empty"
+  
+  CreateTopicMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ResourceId: !Ref CreateTopicResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Credentials: !GetAtt ApiGatewayLambdaInvokeRole.Arn
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateTopicLambda.Arn}/invocations"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              application/json: ""
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Content-Type: true
+          ResponseModels:
+            application/json: "Empty"
+  InterviewReportMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      ResourceId: !Ref InterviewReportResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Credentials: !GetAtt ApiGatewayLambdaInvokeRole.Arn
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${InterviewReportLambda.Arn}/invocations"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              application/json: ""
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Content-Type: true
+          ResponseModels:
+            application/json: "Empty"
+
+  UploadApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: [ UploadMethod, FeedbackMethod, UploadApiOptions, FeedbackApiOptions ]
+    Properties:
+      RestApiId: !Ref UploadFileApi
+      StageName: prod
+
+  UploadApiOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      ResourceId: !Ref UploadResource
+      RestApiId: !Ref UploadFileApi
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+        ResponseModels:
+          application/json: "Empty"
+
+  FeedbackApiOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      ResourceId: !Ref FeedbackResource
+      RestApiId: !Ref UploadFileApi
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+        ResponseModels:
+          application/json: "Empty"
+
+  CreateTopicApiOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      ResourceId: !Ref CreateTopicResource
+      RestApiId: !Ref UploadFileApi
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: "Empty"
+
+  InterviewReportApiOptions:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: OPTIONS
+      ResourceId: !Ref InterviewReportResource
+      RestApiId: !Ref UploadFileApi
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels:
+            application/json: "Empty"
+
+  LambdaPermissionGenerate:
+    Type: AWS::Lambda::Permission
+    DependsOn: GenerateQuestionsLambda
+    Properties:
+      FunctionName: !Ref GenerateQuestionsLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
+
+  LambdaPermissionFeedback:
+    Type: AWS::Lambda::Permission
+    DependsOn: FeedbackFromAILambda
+    Properties:
+      FunctionName: !Ref FeedbackFromAILambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
+  LambdaPermissionFeedback:
+  Type: AWS::Lambda::Permission
+  DependsOn: FeedbackFromAILambda
+  Properties:
+    FunctionName: !Ref FeedbackFromAILambda
+    Action: lambda:InvokeFunction
+    Principal: apigateway.amazonaws.com
+    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
+
+  LambdaPermissionCreateTopic:
+    Type: AWS::Lambda::Permission
+    DependsOn: CreateTopicLambda
+    Properties:
+      FunctionName: !Ref CreateTopicLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
+
+  LambdaPermissionInterviewReport:
+    Type: AWS::Lambda::Permission
+    DependsOn: InterviewReportLambda
+    Properties:
+      FunctionName: !Ref InterviewReportLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
+
+Outputs:
+  VPCId:
+    Description: "VPC ID"
+    Value: !Ref MyVPC
+
+  PublicSubnet1Id:
+    Description: "Public Subnet 1 ID"
+    Value: !Ref PublicSubnet1
+
+  PublicSubnet2Id:
+    Description: "Public Subnet 2 ID"
+    Value: !Ref PublicSubnet2
+
+  InternetGatewayId:
+    Description: "Internet Gateway ID"
+    Value: !Ref InternetGateway
+
+  PrivateSubnet1Id:
+    Description: "Private Subnet 1 ID"
+    Value: !Ref PrivateSubnet1
+
+  PrivateSubnet2Id:
+    Description: "Private Subnet 2 ID"
+    Value: !Ref PrivateSubnet2
+
+  NatGatewayId:
+    Description: "NAT Gateway ID"
+    Value: !Ref NatGateway
+
+  PrivateRouteTableId:
+    Description: "Private Route Table ID"
+    Value: !Ref PrivateRouteTable
+
+  DynamoDBEndpointId:
+    Description: "VPC Endpoint ID for DynamoDB"
+    Value: !Ref DynamoDBVPCEndpoint
+
+  FrontendALBURL:
+    Description: "Load Balancer URL"
+    Value: !GetAtt FrontendALB.DNSName
+  ApiEndpoint:
+    Description: "API Gateway Invoke URL"
+    Value: !Sub "https://${UploadFileApi}.execute-api.${AWS::Region}.amazonaws.com/prod/upload"
