@@ -83,7 +83,11 @@ MockMentor addresses a common problem: many job candidates lack adequate real-wo
    The full session report is sent to the user’s email using **Amazon SNS**, providing a summary of strengths, improvement areas, and overall progress.
 
 ---
+## 🎥 Demo Video
 
+https://github.com/user-attachments/assets/225b4faa-0e03-491b-858a-689091fdaa46
+
+---
 ## 🚀 Future Enhancements  
 - **Video Analysis** – Integrate Amazon Rekognition for body language feedback  
 - **Multi-User Sessions** – Collaborative mock interviews using WebSocket APIs  
