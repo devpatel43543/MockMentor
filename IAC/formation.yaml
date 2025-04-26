@@ -547,40 +547,40 @@ Resources:
           SECRET_NAME: !Ref LambdaSecret
 
   LambdaExecutionRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: LambdaExecutionRole
-        AssumeRolePolicyDocument:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: LambdaPermissions
+        PolicyDocument:
           Version: "2012-10-17"
           Statement:
           - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-        Policies:
-        - PolicyName: LambdaPermissions
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-            - Effect: Allow
-              Action:
-              - s3:PutObject
-              - s3:GetObject
-              Resource: "arn:aws:s3:::formationzip101/*"
-            - Effect: Allow
-              Action:
-              - secretsmanager:GetSecretValue
-              Resource: !Ref LambdaSecret
-            - Effect: Allow
-              Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              Resource: "*"
-            - Effect: Allow
-              Action:
-              - sns:Publish
-              Resource: !Ref InterviewReportTopic
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            Resource: "arn:aws:s3:::formationzip101/*"
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource: !Ref LambdaSecret
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - sns:Publish
+            Resource: !Ref InterviewReportTopic
 
   ApiGatewayLambdaInvokeRole:
     Type: AWS::IAM::Role
@@ -727,6 +727,7 @@ Resources:
             method.response.header.Content-Type: true
           ResponseModels:
             application/json: "Empty"
+
   InterviewReportMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -883,14 +884,6 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
-  LambdaPermissionFeedback:
-  Type: AWS::Lambda::Permission
-  DependsOn: FeedbackFromAILambda
-  Properties:
-    FunctionName: !Ref FeedbackFromAILambda
-    Action: lambda:InvokeFunction
-    Principal: apigateway.amazonaws.com
-    SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UploadFileApi}/*"
 
   LambdaPermissionCreateTopic:
     Type: AWS::Lambda::Permission
