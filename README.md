@@ -20,6 +20,11 @@ MockMentor addresses a common problem: many job candidates lack adequate real-wo
 **So that** I can improve my communication skills and confidence before the actual interview.  
 
 ---
+## 🎥 Demo Video
+
+https://github.com/user-attachments/assets/225b4faa-0e03-491b-858a-689091fdaa46
+
+---
 
 ## 🗺️ Architecture Diagram  
 ![architecture](https://github.com/user-attachments/assets/49b77925-0b73-4327-ae97-9d4befb57913)
@@ -81,11 +86,6 @@ MockMentor addresses a common problem: many job candidates lack adequate real-wo
 
 5. **Email Report Delivery**  
    The full session report is sent to the user’s email using **Amazon SNS**, providing a summary of strengths, improvement areas, and overall progress.
-
----
-## 🎥 Demo Video
-
-https://github.com/user-attachments/assets/225b4faa-0e03-491b-858a-689091fdaa46
 
 ---
 ## 🚀 Future Enhancements  
